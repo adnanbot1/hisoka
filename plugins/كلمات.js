@@ -1,4 +1,7 @@
 import fetch from 'node-fetch'
+// تعريف الرسائل النصية للانتظار والانتهاء
+const errorMessage = '❌ لم يتم العثور';
+const doneMessage = '✅ تم التحميل بنجاح!';
 
 let handler = async (m, {conn, text }) => {
   let teks = text ? text : m.quoted && m.quoted.text ? m.quoted.text : ''
@@ -12,10 +15,12 @@ let handler = async (m, {conn, text }) => {
 ▢ *${json.title}*
 *${json.author}*\n
 ${json.lyrics}`, m)
-m.react(done)
-} catch (e) {
-	m.react(error)
-	} 
+  // إرسال رسالة الانتظار
+  await conn.reply(m.chat, doneMessage, m);
+} await conn.reply(m.chat, errorMessage, m);
+  } catch (error) {
+    console.log(error);
+    m.reply('⚠️ حصل خطاء في التحميل يرجى المحاوله لاحقا.');
 }
 handler.help = ['lyrics']
 handler.tags = ['tools']

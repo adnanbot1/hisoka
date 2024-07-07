@@ -12,7 +12,7 @@ export async function before(m) {
         if (isSurrender) {
             clearTimeout(this.tebakbendera[id][3])
             delete this.tebakbendera[id]
-            return this.reply(m.chat, '*طلع فاشل و استسلم :( !*', m)
+            return this.reply(m.chat, '*طلعت فاشل و استسلمت 😕*', m)
         }
         let json = JSON.parse(JSON.stringify(this.tebakbendera[id][1]))
 

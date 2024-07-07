@@ -1,21 +1,21 @@
-const dir = [
-  'https://raw.githubusercontent.com/Dark-Man747/worker-bot/main/dado/dado1.webp',
-  'https://raw.githubusercontent.com/Dark-Man747/worker-bot/main/dado/dado2.webp',
-  'https://raw.githubusercontent.com/Dark-Man747/worker-bot/main/dado/dado3.webp',
-  'https://raw.githubusercontent.com/Dark-Man747/worker-bot/main/dado/dado4.webp',
-  'https://raw.githubusercontent.com/Dark-Man747/worker-bot/main/dado/dado5.webp',
-  'https://raw.githubusercontent.com/Dark-Man747/worker-bot/main/dado/dado6.webp'
+const da = [
+  'https://tinyurl.com/gdd01',
+  'https://tinyurl.com/gdd02',
+  'https://tinyurl.com/gdd003',
+  'https://tinyurl.com/gdd004',
+  'https://tinyurl.com/gdd05',
+  'https://tinyurl.com/gdd006'
 ];
 let handler = async (m, { conn }) => {
-  conn.sendFile(m.chat, dir[Math.floor(Math.random() * dir.length)], 'dado.webp', '', m)
-  await conn.sendMessage(m.chat, {
-   react: {
- text: "🎲",
- key: m.key,
-   }
+  conn.sendFile(m.chat, pickRandom(da), 'dado.webp', '', m)
 }
-handler.help = ['نرد']
-handler.tags = ['game']
-handler.command = ['نرد', 'dado'] 
+handler.help = ['dado']
+handler.tags = ['game', 'group']
+handler.command = ['زهر', 'dados', 'ترد'] 
+handler.group = true
 
 export default handler
+
+function pickRandom(list) {
+  return list[Math.floor(list.length * Math.random())]
+}

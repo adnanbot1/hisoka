@@ -1,14 +1,49 @@
-let handler = async (m, { conn, groupMetadata, text, command}) => {
-  if (!m.mentionedJid[0] && !m.quoted) throw 'يمكنك وضع علامة على شخص ما في المجموعة للقيام ببعض الإجراءات'
-  let user = m.mentionedJid[0] ? m.mentionedJid[0] : m.quoted.sender
-let participants = groupMetadata.participants
-  conn.reply(m.chat, `لقد أعطيته للتو ${command} ${text} ل *@${user.split('@')[0]}* 😳`, null, { mentions: [user] })
+import uploadtoimgur from '../lib/imgur.js';
+import fs from 'fs';
+import path from 'path';
 
-}
-handler.help = ['acciones']
-handler.tags = ['group']
-handler.command = /^(هديه|هدية)$/
+let handler = async (m) => {
+  let q = m.quoted ? m.quoted : m;
+  let mime = (q.msg || q).mimetype || '';
+  
+  if (!mime) {
+    throw '* 🗿 رد على صوره او فيديو*';
+  }
+  let mediaBuffer = await q.download();
 
-handler.group = true
+ 
+  if (mediaBuffer.length > 10 * 1024 * 1024) {
+    throw '* 🗿 يولد الملف اكبر من 10 جيب غيره بس يكون اقل من 10 ميغا*.';
+  }
 
-export default handler
+  let currentModuleDirectory = path.dirname(new URL(import.meta.url).pathname);
+
+  let tmpDir = path.join(currentModuleDirectory, '../tmp');
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir);
+  }
+
+  let mediaPath = path.join(tmpDir, `media_${Date.now()}.${mime.split('/')[1]}`);
+  fs.writeFileSync(mediaPath, mediaBuffer);
+
+  let isTele = /image\/(png|jpe?g|gif)|video\/mp4/.test(mime);
+
+  if (isTele) {
+    let link = await uploadtoimgur(mediaPath);
+
+    const fileSizeMB = (mediaBuffer.length / (1024 * 1024)).toFixed(2);
+
+    m.reply(`✅ *تم تحميل الوسائط بنجاح*\n *حجم الملف:* ${fileSizeMB} MB\n *الرابط:* ${link}`);
+  } else {
+    m.reply(` ${mediaBuffer.length} Byte(s) 
+     (Unknown)`);
+  }
+
+  fs.unlinkSync(mediaPath);
+};
+
+handler.help = ['tourl'];
+handler.tags = ['tools'];
+handler.command = ['لرابط', 'tourl', 'راابط'];
+
+export default handler;

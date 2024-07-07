@@ -97,7 +97,13 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                             title: 'المطور',
                             description: 'بيجيب لك اوامر المطور',
                             id: '.قسم-المطور'
-                          }
+                          },
+                          {
+                            header: 'ســرعــة الــبــوت',
+                            title: 'البينج',
+                            description: '',
+                            id: '.ping'
+                        }
                         ]
                       }
                     ]
