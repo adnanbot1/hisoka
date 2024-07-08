@@ -1,56 +1,144 @@
-// من قناة : https://whatsapp.com/channel/0029VaQim2bAu3aPsRVaDq3v
-// By : team GataBot 
+import db from '../lib/database.js'
+import { promises } from 'fs'
+import fs from 'fs'
+import fetch from 'node-fetch'
+import { join } from 'path'
+import { xpRange } from '../lib/levelling.js'
+import moment from 'moment-timezone'
 
-
-const canal2 = 'https://telegra.ph/file/078014e17aedf4f7a6cd9.jpg'; 
-// COMBINACIÓN DE MENSAJES
-// Adaptar el simple.js
-let handler = async (m, { conn, usedPrefix, command, text }) => {
-
-// MENSAJE CARUSEL CON TODOS LOS BOTONES DISPONIBLES
-// Si las ids no te funciona con usedPrefix, tendrás que definirlas, ejemplo /menu
-const sections = [{
-title: `Título de la sección`,
-rows: [
-{ header: 'Encabezado1', title: "Título1", description: 'Descripción1', id: usedPrefix + "menu" }, 
-{ header: 'Encabezado2', title: "Título2", description: 'Descripción2', id: "Id2" }, 
-{ header: 'Encabezado3', title: "Título3", description: 'Descripción3', id: "Id3" }, 
-{ header: 'Encabezado4', title: "Título4", description: 'Descripción4', id: "Id4" }, 
-]},]  
-const messages = [[ // CARRUSEL 1
-'Descripción de Carrusel 1', 
-'Footer de Carrusel 1',
-'https://telegra.ph/file/24b24c495b5384b218b2f.jpg',
-[['Botón1', usedPrefix + 'menu'], ['Botón2', 'Id2'] /* etc... */],
-[['Texto para copiar 1'], ['Texto para copiar 2'] /* etc... */],
-[['Enlace1', canal2], ['Enlace2', 'https://example.com/link2'] /* etc... */],
-[['Botón Lista 1', sections], ['Botón Lista 2', sections] /* etc... */]
-], [ // CARRUSEL 2
-'Descripción de Carrusel 2',
-'Footer de Carrusel 2',
-'https://telegra.ph/file/e9239fa926d3a2ef48df2.jpg',
-[['Botón1', 'Id1'], ['Botón2', 'Id2']],
-[['Texto para copiar 1'], ['Texto para copiar 2']],
-[['Enlace1', 'https://example.com/link1'], ['Enlace2', 'https://example.com/link2']],
-[['Botón Lista 1', sections], ['Botón Lista 2', sections]]
-], [ // CARRUSEL 3
-'Descripción de Carrusel 3',
-'Footer de Carrusel 3',
-'https://telegra.ph/file/ec725de5925f6fb4d5647.jpg',
-[['Botón1', 'Id1'], ['Botón2', 'Id2']],
-[['Texto para copiar 1'], ['Texto para copiar 2']],
-[['Enlace1', 'https://example.com/link1'], ['Enlace2', 'https://example.com/link2']],
-[['Botón Lista 1', sections], ['Botón Lista 2', sections]]
-], [ // CARRUSEL 4
-'Descripción de Carrusel 4',
-'Footer de Carrusel 4',
-'https://telegra.ph/file/7acad0975febb71446da5.jpg',
-[['Botón1', 'Id1'], ['Botón2', 'Id2']],
-[['Texto para copiar 1'], ['Texto para copiar 2']],
-[['Enlace1', 'https://example.com/link1'], ['Enlace2', 'https://example.com/link2']],
-[['Botón Lista 1', sections], ['Botón Lista 2', sections]]
-]] /* etc... */
-await conn.sendFile(m.chat, 'Texto', 'Footer', 'Titulo de Carrusel', messages, m)
+let totalf = Object.values(global.plugins).filter(v => v.help && v.tags).length
+let tags = { 'main': 'Main' }
+const defaultMenu = {
+  before: `┏━━━ ❮❮ 𝙼𝙴𝙽𝚄 ❯❯
+┃⫹⫺ *𝙽𝚊𝚖𝚎:* ${global.author}
+┃⫹⫺ *𝚃𝚘𝚝𝚊𝚕:* ${totalf} + Features
+┃⫹⫺ *𝚅𝚎𝚛𝚜𝚒𝚘𝚗:* V1.4.3
+┃⫹⫺ *𝙿𝚛𝚎𝚏𝚒𝚡:* Multi Prefix 
+┃⫹⫺ *𝙾𝚠𝚗𝚎𝚛:* Shizo The Techie
+┃⫹⫺ *𝙿𝚕𝚊𝚝𝚏𝚘𝚛𝚖:* 𝙻𝚒𝚗𝚞𝚡
+┖─────────┈┈┈〠⸙࿉༐
+    %readmore`.trimStart(),
+  header: '┏━━━━ ❨ *%category* ❩ ━━┄┈ •⟅ ',
+  body: ' ┃✦ %cmd',
+  footer: '┗━═┅┅┅┅═━–––––––๑\n',
+  after: `*Made by ♡ ${global.oname}*`,
 }
-handler.command = /^(ترو)$/i
+
+let handler = async (m, { conn, usedPrefix: _p, __dirname }) => {
+  try {
+    // Reading package.json
+    let _package = JSON.parse(await promises.readFile(join(__dirname, '../package.json')).catch(_ => ({}))) || {}
+
+    // User-specific data
+    let { rank, exp, limit, level, role } = global.db.data.users[m.sender]
+    let { min, xp, max } = xpRange(level, global.multiplier)
+    let name = await conn.getName(m.sender)
+
+    // Date and time calculations
+    let d = new Date(new Date() + 3600000)
+    let locale = 'en'
+    let weton = ['Pahing', 'Pon', 'Wage', 'Kliwon', 'Legi'][Math.floor(d / 84600000) % 5]
+    let week = d.toLocaleDateString(locale, { weekday: 'long' })
+    let date = d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
+    let dateIslamic = Intl.DateTimeFormat(locale + '-TN-u-ca-islamic', { day: 'numeric', month: 'long', year: 'numeric' }).format(d)
+    let time = d.toLocaleTimeString(locale, { hour: 'numeric', minute: 'numeric', second: 'numeric' })
+
+    // Uptime calculations
+    let _uptime = process.uptime() * 1000
+    let _muptime = process.send ? await new Promise(resolve => {
+      process.once('message', resolve)
+      setTimeout(resolve, 1000)
+    }) * 1000 : 0
+    let muptime = clockString(_muptime)
+    let uptime = clockString(_uptime)
+
+    // Fetching user data
+    let totalreg = Object.keys(global.db.data.users).length
+    let rtotalreg = Object.values(global.db.data.users).filter(user => user.registered == true).length
+    let help = Object.values(global.plugins).filter(plugin => !plugin.disabled).map(plugin => {
+      return {
+        help: Array.isArray(plugin.tags) ? plugin.help : [plugin.help],
+        tags: Array.isArray(plugin.tags) ? plugin.tags : [plugin.tags],
+        prefix: 'customPrefix' in plugin,
+        limit: plugin.limit,
+        premium: plugin.premium,
+        enabled: !plugin.disabled,
+      }
+    })
+
+    // Organizing tags
+    for (let plugin of help)
+      if (plugin && 'tags' in plugin)
+        for (let tag of plugin.tags)
+          if (!(tag in tags) && tag) tags[tag] = tag
+
+    // Menu template
+    conn.menu = conn.menu ? conn.menu : {}
+    let before = conn.menu.before || defaultMenu.before
+    let header = conn.menu.header || defaultMenu.header
+    let body = conn.menu.body || defaultMenu.body
+    let footer = conn.menu.footer || defaultMenu.footer
+    let after = conn.menu.after || (conn.user.jid == conn.user.jid ? '' : `Powered by https://wa.me/${conn.user.jid.split`@`[0]}`) + defaultMenu.after
+    let _text = [
+      before,
+      ...Object.keys(tags).map(tag => {
+        return header.replace(/%category/g, tags[tag]) + '\n' + [
+          ...help.filter(menu => menu.tags && menu.tags.includes(tag) && menu.help).map(menu => {
+            return menu.help.map(help => {
+              return body.replace(/%cmd/g, menu.prefix ? help : '%p' + help)
+                .replace(/%islimit/g, menu.limit ? '[🅛]' : '')
+                .replace(/%isPremium/g, menu.premium ? '[🅟]' : '')
+                .replace(/%isVip/g, menu.vip ? '[🅥]' : '')
+                .trim()
+            }).join('\n')
+          }),
+          footer
+        ].join('\n')
+      }),
+      after
+    ].join('\n')
+    let text = typeof conn.menu == 'string' ? conn.menu : typeof conn.menu == 'object' ? _text : ''
+    let replace = {
+      '%': '%',
+      p: _p, uptime, muptime,
+      me: conn.getName(conn.user.jid),
+      npmname: _package.name,
+      npmdesc: _package.description,
+      version: _package.version,
+      exp: exp - min,
+      maxexp: xp,
+      totalexp: exp,
+      xp4levelup: max - exp,
+      github: _package.homepage ? _package.homepage.url || _package.homepage : '[unknown github url]',
+      level, limit, name, weton, week, date, dateIslamic, time, totalreg, rtotalreg, role,
+      readmore: readMore
+    }
+    text = text.replace(new RegExp(`%(${Object.keys(replace).sort((a, b) => b.length - a.length).join`|`})`, 'g'), (_, name) => '' + replace[name])
+    const pp = await conn.profilePictureUrl(conn.user.jid).catch(_ => './media/contact.png')
+
+    // Sending the menu
+    conn.sendButton(m.chat, text.replace(), author, pp, [['Owner⚡', '.owner'], ['Bot Speed 🚀', '.ping']], null, [['Follow Owner 🫣', smlink], ['Join Group 🥰', gclink]], m)
+    
+  } catch (e) {
+    conn.reply(m.chat, 'ERROR IN MENU', m)
+    throw e
+  }
+}
+handler.command = /^(alkaser)$/i
+handler.exp = 3
+
 export default handler
+
+const more = String.fromCharCode(8206)
+const readMore = more.repeat(4001)
+
+function clockString(ms) {
+  let h = isNaN(ms) ? '--' : Math.floor(ms / 3600000)
+  let m = isNaN(ms) ? '--' : Math.floor(ms / 60000) % 60
+  let s = isNaN(ms) ? '--' : Math.floor(ms / 1000) % 60
+  return [h, m, s].map(v => v.toString().padStart(2, 0)).join(':')
+}
+
+function pickRandom(list) {
+  return list[Math.floor(list.length * Math.random())]
+}

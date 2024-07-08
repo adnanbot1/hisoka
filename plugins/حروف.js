@@ -7,7 +7,7 @@ handler.help = ['kshskshd']
 handler.tags = ['group']
 handler.command = /حروف|احرف/i
 handler.admin = true
-handler.botAdmin = true
+
 export default handler
 
 function pickRandom(list) {

@@ -1,5 +1,5 @@
 console.log('[ ℹ️ ] Iniciando...');
-import path from 'path';
+import path from 'path'
 import {join, dirname} from 'path';
 import {createRequire} from 'module';
 import {fileURLToPath} from 'url';
